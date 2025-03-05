@@ -24,7 +24,7 @@ const registerUser = async (user) => {
   }
   const passwordEncriptada = bcrypt.hashSync(password);
 
-  const values = [name, email, passwordEncriptada, , phonenumber, address];
+  const values = [name, email, passwordEncriptada, phonenumber, address];
   const consulta = "INSERT INTO users values (DEFAULT, $1, $2, $3, $4, $5)";
   await pool.query(consulta, values);
 };
