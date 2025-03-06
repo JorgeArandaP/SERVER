@@ -8,6 +8,8 @@ import upload from "./config/multerConfig.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,14 @@ app.use(cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: "dsv7xnrgp",
+  api_key: "199421492913658",
+  api_secret: "WHniwI3wxj0WRq7o-x3UkY0ErhE",
+});
 
 app.listen(3000, console.log("Servidor encendido!"));
 
@@ -102,9 +112,19 @@ app.patch("/users", authMiddleware, async (req, res) => {
 
 app.post("/rooms", upload.array("images"), async (req, res) => {
   const { title, description, price, address, userId } = req.body;
-  const images = req.files.map((file) => `/uploads/${file.filename}`); // Rutas de las imágenes
 
   try {
+    // Subir imágenes a Cloudinary
+    const imageUrls = await Promise.all(
+      req.files.map(async (file) => {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: "rooms", // Carpeta en Cloudinary (opcional)
+        });
+        fs.unlinkSync(file.path); // Eliminar archivo temporal
+        return result.secure_url; // URL pública de la imagen
+      })
+    );
+
     // Consulta SQL para insertar un nuevo registro en la tabla "rooms"
     const query = `
       INSERT INTO rooms (title, description, price, address, images, user_id)
@@ -118,7 +138,7 @@ app.post("/rooms", upload.array("images"), async (req, res) => {
       description,
       price,
       address,
-      images,
+      imageUrls, // Usamos las URLs de Cloudinary
       userId,
     ]);
 
