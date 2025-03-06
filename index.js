@@ -18,8 +18,6 @@ app.use(cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const cloudinary = require("cloudinary").v2;
-
 cloudinary.config({
   cloud_name: "dsv7xnrgp",
   api_key: "199421492913658",
